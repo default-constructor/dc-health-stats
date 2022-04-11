@@ -1,5 +1,5 @@
 {
-  "name": "default-constructor-de",
+  "name": "dc-health-stats",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
