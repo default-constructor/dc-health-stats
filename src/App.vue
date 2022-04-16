@@ -7,7 +7,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <main>
-    <router-view></router-view>
-  </main>
+  <router-view v-slot="{Component}">
+    <suspense>
+      <main>
+        <component :is="Component"/>
+      </main>
+    </suspense>
+  </router-view>
 </template>
