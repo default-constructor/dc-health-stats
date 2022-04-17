@@ -15,13 +15,11 @@ export const useTotalDeathsApi = () => {
     loading.value = true
     error.value = undefined
 
-    await api.get("/total-deaths")
+    await api.get("/total-deaths?from=2021")
         .then((r) => {
-          console.log("result", r)
           result.value = r.data as TotalDeaths[]
         })
         .catch((e) => {
-          console.error("error", e)
           error.value = "Failed to load total deaths: " + e.message
         })
         .finally(() => {

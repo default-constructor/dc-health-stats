@@ -1,10 +1,10 @@
 export class TotalDeaths {
 
   constructor(
-      year: number,
-      week: number,
-      ageGroup: string,
-      count: number
+      public year: number,
+      public week: number,
+      public ageGroup: string,
+      public count: number
   ) {}
 
 }

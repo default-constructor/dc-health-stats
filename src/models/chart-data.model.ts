@@ -1,8 +1,9 @@
 export class ChartData {
 
   constructor(
-      x: any,
-      y: any
+      public x: string | number,
+      public y: string | number,
+      public z: string
   ) {
   }
 

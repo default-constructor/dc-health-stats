@@ -2,30 +2,25 @@
 import {defineComponent, ref} from "vue";
 import {useTotalDeathsApi} from "../apis/total-deaths.api";
 import StackedAreaChart from "../components/StackedAreaChart.vue";
+import {ChartData} from "../models/chart-data.model";
+import {TotalDeaths} from "../models/total-deaths.model";
 
 export default defineComponent({
   name: 'DeathsChartView',
   components: {StackedAreaChart},
 
   async setup() {
-    console.log("setup");
-
-    const prepareData = (data: []): Map<string, []> => {
-      const ageGroupMap = new Map()
-      data.forEach((d: any) => {
-        if (!ageGroupMap.get(d.ageGroup)) {
-          ageGroupMap.set(d.ageGroup, [])
-        }
-        let ageGroupDeaths = ageGroupMap.get(d.ageGroup);
-        ageGroupDeaths[ageGroupDeaths.length] = {
+    const prepareChartData = (data: TotalDeaths[]): ChartData[] => {
+      const preparedChartData: ChartData[] = []
+      data.forEach((d: TotalDeaths, index) => {
+        preparedChartData[index] = {
           x: ("0" + d.week).slice(-2) + "/" + d.year,
-          y: d.count
-        }
+          y: d.count,
+          z: d.ageGroup
+        } as ChartData
       })
 
-      console.log("ageGroupMap", ageGroupMap)
-
-      return ageGroupMap
+      return preparedChartData
     }
 
     const chartData = ref();
@@ -33,8 +28,7 @@ export default defineComponent({
     const {loadTotalDeaths, loading, result, error} = useTotalDeathsApi()
 
     await loadTotalDeaths()
-    chartData.value = prepareData(result.value)
-    console.log("chartData", chartData)
+    chartData.value = prepareChartData(result.value)
 
     return {
       chartData

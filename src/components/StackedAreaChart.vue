@@ -1,49 +1,89 @@
 <script lang="ts">
-import {defineComponent, ref} from "vue";
-import {Area, Chart, Grid, Group, Line} from "vue3-charts";
-import {ChartData} from "../models/chart-data.model";
+import {defineComponent, onMounted} from "vue"
+import {ChartData} from "../models/chart-data.model"
+import {
+  area,
+  axisBottom,
+  axisLeft,
+  group,
+  scaleBand,
+  scaleLinear,
+  scaleOrdinal,
+  schemeCategory10,
+  select,
+  stack
+} from "d3";
 
 export default defineComponent({
   name: 'StackedAreaChart',
-  components: {Group, Chart, Grid, Area, Line},
+  components: {},
   props: {
     chartData: {
-      type: Map,
+      type: Array,
       required: true
     }
   },
 
   setup(props) {
-    console.log("setup", props)
-
-    let data = props.chartData.get("80-85") as ChartData[]
-
-    const chartData = ref(data)
-    const direction = ref('horizontal')
-    const margin = ref({
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0
-    })
-    const axis = ref({
-      primary: {
-        type: 'band',
-        rotate: true
-      },
-      secondary: {
-        domain: ['dataMin', 'dataMax'],
-        type: 'linear',
-        ticks: 8
+    onMounted(() => {
+      const margin = {left: 4, top: 4, right: 4, bottom: 4}
+      const size = {width: 1024, height: 512}
+      const chart = {
+        width: size.width - margin.left - margin.right,
+        height: size.height - margin.top - margin.bottom
       }
+
+      let data = props.chartData as ChartData[]
+      let xLabels = [...new Set(data.map((d: ChartData) => d.x as string))]
+      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string))]
+
+      const xScale = scaleBand().domain(xLabels).range([0, chart.width])
+      const yScale = scaleLinear().domain([0, 30000]).range([chart.height, 0])
+      const zScale = scaleOrdinal().domain(zLabels).range(schemeCategory10)
+
+      const svg = createSvg(size, margin)
+
+      svg.append("g")
+          .attr("transform", "translate(0," + chart.height + ")")
+          .call(axisBottom(xScale).ticks(24))
+
+      svg.append("g")
+          .call(axisLeft(yScale).ticks(10))
+
+      svg.selectAll("layers")
+          .data(createStack(data, zLabels))
+          .enter()
+          .append("path")
+          .style("fill", (d: any) => zScale(zLabels[d.key - 1]))
+          .attr("d", createArea(xScale, yScale))
     })
 
-    return {
-      chartData,
-      direction,
-      margin,
-      axis
+    const createArea = (xScale: any, yScale: any) => {
+      return area()
+          .x((d: any) => xScale(d.data[0]))
+          .y0((d: any[]) => yScale(d[0]))
+          .y1((d: any[]) => yScale(d[1]))
     }
+
+    const createStack = (data: ChartData[], zLabels: string[]) => {
+      const groupedData = group(data, (d: ChartData) => d.x)
+
+      return stack()
+          .keys(zLabels.map((label: string, index: number) => index + 1))
+          .value((d: any, key: number) => d[1][key - 1].y)
+          (groupedData)
+    }
+
+    const createSvg = (size: any, margin: any) => {
+      return select("#stacked-area-graph")
+          .append("svg")
+          .attr("width", size.width)
+          .attr("height", size.height)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    }
+
+    return {}
   }
 })
 </script>
@@ -51,25 +91,7 @@ export default defineComponent({
 <template>
   <div class="stacked-area-chart">
     <div class="stacked-area-chart__graph">
-      <div class="graph">
-        <Chart
-            :size="{width: 1280, height: 512}"
-            :data="chartData"
-            :margin="margin"
-            :direction="direction"
-            :axis="axis"
-        >
-          <template #layers>
-            <Grid strokeDasharray="2,2"/>
-            <Group stacked>
-              <Group>
-                <Area :data-keys="['x', 'y']" type="normal" :area-style="{ fill: 'red' }"/>
-                <Line :data-keys="['x', 'y']" hide-dot type="normal" :line-style="{stroke: 'red', strokeWidth: 1}"/>
-              </Group>
-            </Group>
-          </template>
-        </Chart>
-      </div>
+      <div id="stacked-area-graph"></div>
     </div>
     <div class="stacked-area-chart__legend">
 
