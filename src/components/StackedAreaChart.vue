@@ -11,8 +11,10 @@ import {
   scaleOrdinal,
   schemeCategory10,
   select,
-  stack
+  stack,
+  sum
 } from "d3";
+import {Area} from "d3-shape";
 
 export default defineComponent({
   name: 'StackedAreaChart',
@@ -26,52 +28,80 @@ export default defineComponent({
 
   setup(props) {
     onMounted(() => {
-      const margin = {left: 4, top: 4, right: 4, bottom: 4}
-      const size = {width: 1024, height: 512}
+      const margin = {left: 64, top: 16, right: 64, bottom: 64}
+      const size = {width: 1280, height: 512}
       const chart = {
         width: size.width - margin.left - margin.right,
         height: size.height - margin.top - margin.bottom
       }
 
-      let data = props.chartData as ChartData[]
-      let xLabels = [...new Set(data.map((d: ChartData) => d.x as string))]
-      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string))]
+      const data = props.chartData as ChartData[]
+      const xLabels = [...new Set(data.map((d: ChartData) => d.x as string)).values()]
+      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string)).values()]
 
       const xScale = scaleBand().domain(xLabels).range([0, chart.width])
-      const yScale = scaleLinear().domain([0, 30000]).range([chart.height, 0])
-      const zScale = scaleOrdinal().domain(zLabels).range(schemeCategory10)
+      const maxYScale = getMaxYScale(data)
+      const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
+      const zScale = scaleOrdinal(schemeCategory10).domain(zLabels).range(schemeCategory10)
 
       const svg = createSvg(size, margin)
 
       svg.append("g")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).ticks(24))
+          .call(axisBottom(xScale).ticks(52))
 
       svg.append("g")
-          .call(axisLeft(yScale).ticks(10))
+          .call(axisLeft(yScale))
 
       svg.selectAll("layers")
-          .data(createStack(data, zLabels))
+          .data(createStack(data))
           .enter()
           .append("path")
-          .style("fill", (d: any) => zScale(zLabels[d.key - 1]))
+          .style("fill", (d: any, key: any) => zScale(zLabels[key]))
           .attr("d", createArea(xScale, yScale))
     })
 
-    const createArea = (xScale: any, yScale: any) => {
+    const createArea = (xScale: any, yScale: any): Area<any> => {
       return area()
-          .x((d: any) => xScale(d.data[0]))
+          .x((d: any) => xScale(d.data['x']))
           .y0((d: any[]) => yScale(d[0]))
           .y1((d: any[]) => yScale(d[1]))
     }
 
-    const createStack = (data: ChartData[], zLabels: string[]) => {
-      const groupedData = group(data, (d: ChartData) => d.x)
+    const getMaxYScale = (data: ChartData[]): number => {
+      const grouped = new Map()
+      for (const d of data) {
+        const sum = (grouped.has(d.x) ? grouped.get(d.x) : 0) + d.y
+        grouped.set(d.x, sum)
+      }
+
+      return Math.max(...Array.from(grouped.values()) as number[])
+    }
+
+    const createStack = (data: ChartData[]) => {
+      const groupedMap = group(data, (d: ChartData) => d.x, (d: ChartData) => d.z)
+      const stackKeys = Array.from(new Set(data.map(d => d.z)).values())
+          .sort((a, b) => +a.split("-")[0] - +b.split("-")[0])
+
+      const reducer = (v: any[]) => sum(v, d => d.y);
+
+      const tabledData = Array.from(groupedMap.entries())
+          .map(group => {
+            const obj = {} as any
+            obj['x'] = group[0]
+            for (let col of stackKeys) {
+              const vals = group[1].get(col)
+              obj[col] = !vals ? 0 : reducer(Array.from(vals.values()))
+            }
+
+            return obj
+          })
+          .sort((a, b) => a['x'] - b['x'])
 
       return stack()
-          .keys(zLabels.map((label: string, index: number) => index + 1))
-          .value((d: any, key: number) => d[1][key - 1].y)
-          (groupedData)
+          .keys(stackKeys)
+          .value((d: any, key: string) => d[key])
+          (tabledData)
     }
 
     const createSvg = (size: any, margin: any) => {

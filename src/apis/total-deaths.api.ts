@@ -15,7 +15,7 @@ export const useTotalDeathsApi = () => {
     loading.value = true
     error.value = undefined
 
-    await api.get("/total-deaths?from=2021")
+    await api.get("/total-deaths?from=2017&ageGroups=60-65,65-70,70-75,75-80")
         .then((r) => {
           result.value = r.data as TotalDeaths[]
         })
