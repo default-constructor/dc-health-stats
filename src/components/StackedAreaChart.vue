@@ -27,14 +27,14 @@ export default defineComponent({
   },
 
   setup(props) {
-    onMounted(() => {
-      const margin = {left: 64, top: 16, right: 64, bottom: 64}
-      const size = {width: 1280, height: 512}
-      const chart = {
-        width: size.width - margin.left - margin.right,
-        height: size.height - margin.top - margin.bottom
-      }
+    const margin = {left: 64, top: 16, right: 64, bottom: 64}
+    const size = {width: 1280, height: 512}
+    const chart = {
+      width: size.width - margin.left - margin.right,
+      height: size.height - margin.top - margin.bottom
+    }
 
+    onMounted(() => {
       const data = props.chartData as ChartData[]
       const xLabels = [...new Set(data.map((d: ChartData) => d.x as string)).values()]
       const zLabels = [...new Set(data.map((d: ChartData) => d.z as string)).values()]
