@@ -1,5 +1,5 @@
 <script lang="ts">
-import {defineComponent, onMounted} from "vue"
+import {defineComponent, watchEffect} from "vue"
 import {ChartData} from "../models/chart-data.model"
 import {
   area,
@@ -13,8 +13,8 @@ import {
   select,
   stack,
   sum
-} from "d3";
-import {Area} from "d3-shape";
+} from "d3"
+import {Area} from "d3-shape"
 
 export default defineComponent({
   name: 'StackedAreaChart',
@@ -27,18 +27,14 @@ export default defineComponent({
   },
 
   setup(props) {
-    const margin = {left: 64, top: 16, right: 64, bottom: 64}
+    const margin = {left: 64, top: 16, right: 64, bottom: 16}
     const size = {width: 1280, height: 512}
     const chart = {
       width: size.width - margin.left - margin.right,
       height: size.height - margin.top - margin.bottom
     }
 
-    onMounted(() => {
-      const data = props.chartData as ChartData[]
-      const xLabels = [...new Set(data.map((d: ChartData) => d.x as string)).values()]
-      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string)).values()]
-
+    const createChart = (data: ChartData[], xLabels: string[], zLabels: string[]) => {
       const xScale = scaleBand().domain(xLabels).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
@@ -59,7 +55,7 @@ export default defineComponent({
           .append("path")
           .style("fill", (d: any, key: any) => zScale(zLabels[key]))
           .attr("d", createArea(xScale, yScale))
-    })
+    }
 
     const createArea = (xScale: any, yScale: any): Area<any> => {
       return area()
@@ -80,10 +76,9 @@ export default defineComponent({
 
     const createStack = (data: ChartData[]) => {
       const groupedMap = group(data, (d: ChartData) => d.x, (d: ChartData) => d.z)
-      const stackKeys = Array.from(new Set(data.map(d => d.z)).values())
-          .sort((a, b) => +a.split("-")[0] - +b.split("-")[0])
+      const stackKeys = Array.from(new Set(data.map(d => d.z)).values()).sort()
 
-      const reducer = (v: any[]) => sum(v, d => d.y);
+      const reducer = (v: any[]) => sum(v, d => d.y)
 
       const tabledData = Array.from(groupedMap.entries())
           .map(group => {
@@ -105,13 +100,24 @@ export default defineComponent({
     }
 
     const createSvg = (size: any, margin: any) => {
-      return select("#stacked-area-graph")
+      let selection = select("#stacked-area-graph")
+      selection.selectChild().remove()
+
+      return selection
           .append("svg")
           .attr("width", size.width)
           .attr("height", size.height)
           .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
     }
+
+    watchEffect(() => {
+      const data = props.chartData as ChartData[]
+      const xLabels = [...new Set(data.map((d: ChartData) => d.x as string)).values()]
+      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string)).values()]
+
+      createChart(data, xLabels, zLabels)
+    })
 
     return {}
   }

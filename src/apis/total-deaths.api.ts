@@ -11,11 +11,25 @@ export const useTotalDeathsApi = () => {
   const result = ref()
   const error = ref()
 
-  const loadTotalDeaths = async () => {
+  const loadTotalDeaths = async (
+      from?: number,
+      to?: number,
+      ageGroups?: string[]
+  ) => {
     loading.value = true
     error.value = undefined
 
-    await api.get("/total-deaths?from=2017&ageGroups=60-65,65-70,70-75,75-80")
+    let params = "?from=" + ((from && from > 2005) ? from : 2005)
+
+    if (to && to >= 2005) {
+      params += "&to=" + to
+    }
+
+    if (ageGroups && ageGroups.length > 0) {
+      params += "&ageGroups=" + ageGroups.join(",")
+    }
+
+    await api.get("/total-deaths" + params)
         .then((r) => {
           result.value = r.data as TotalDeaths[]
         })
