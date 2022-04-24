@@ -6,7 +6,7 @@ import {ChartData} from "../models/chart-data.model"
 import {TotalDeaths} from "../models/total-deaths.model"
 
 export default defineComponent({
-  name: 'DeathsChartView',
+  name: 'DeathsStatsView',
   components: {StackedAreaChart},
 
   setup() {
@@ -14,11 +14,11 @@ export default defineComponent({
 
     const groupedAgeGroupsCheckboxesRef = ref()
     const groupedAgeGroups = [
-      [{name: "0-30", color: "#8cff3f"}, {name: "30-35", color: "#7f3fff"}, {name: "35-40", color: "#c72f2f"}],
-      [{name: "40-45", color: "#0020ff"}, {name: "45-50", color: "#ff7f00"}, {name: "50-55", color: "#199f19"}],
-      [{name: "55-60", color: "#ff7f7f"}, {name: "60-65", color: "#00d9ff"}, {name: "65-70", color: "#ff207f"}],
-      [{name: "70-75", color: "#c7a92f"}, {name: "75-80", color: "#007fff"}, {name: "80-85", color: "#9774ff"}],
-      [{name: "85-90", color: "#7f2020"}, {name: "90-95", color: "#ff9d3f"}, {name: "95 u. mehr", color: "#007f5f"}]
+      [{name: "0-30", color: "#00d9ff"}, {name: "30-35", color: "#ffba74"}, {name: "35-40", color: "#8cff3f"}],
+      [{name: "40-45", color: "#ff4d4d"}, {name: "45-50", color: "#ffe258"}, {name: "50-55", color: "#007fff"}],
+      [{name: "55-60", color: "#ff7f00"}, {name: "60-65", color: "#199f19"}, {name: "65-70", color: "#e01a1a"}],
+      [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#bd5a00"}],
+      [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#ad0404"}, {name: "95 u. mehr", color: "#b99a00"}]
     ]
     const ageGroupColorsRef = ref()
 
@@ -104,20 +104,20 @@ export default defineComponent({
 
 <template>
   <article id="deaths-chart-view">
-    <h2>DeathsChartView</h2>
-    <div class="death-chart">
-      <StackedAreaChart :chartData="chartDataRef" :colors="ageGroupColorsRef" class="death-chart__chart">
+    <h2>DeathsStatsView</h2>
+    <div class="death-stats">
+      <StackedAreaChart :chartData="chartDataRef" :colors="ageGroupColorsRef" class="death-stats__chart">
       </StackedAreaChart>
-      <div class="death-chart__legend">
+      <div class="death-stats__legend">
         <ul class="legend__years">
           <li>
-            <label>Von: </label>
+            <label>Von Anfang </label>
             <select v-model="fromYearRef">
               <option v-for="year in yearsRef" :value="year">{{ year }}</option>
             </select>
           </li>
           <li>
-            <label>Bis: </label>
+            <label>Bis Ende </label>
             <select v-model="toYearRef">
               <option v-for="year in yearsRef" :value="year">{{ year }}</option>
             </select>
@@ -135,7 +135,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.death-chart {
+.death-stats {
   margin: 0 32px;
 
   &__legend {
@@ -149,7 +149,7 @@ export default defineComponent({
 
         label {
           margin-right: 4px;
-          width: 40px;
+          width: 88px;
           text-align: right;
         }
       }
@@ -200,63 +200,63 @@ export default defineComponent({
           }
 
           &#age-group-0:checked + label::before {
-            background-color: #8cff3f;
-          }
-
-          &#age-group-30:checked + label::before {
-            background-color: #7f3fff;
-          }
-
-          &#age-group-35:checked + label::before {
-            background-color: #c72f2f;
-          }
-
-          &#age-group-40:checked + label::before {
-            background-color: #0020ff;
-          }
-
-          &#age-group-45:checked + label::before {
-            background-color: #ff7f00;
-          }
-
-          &#age-group-50:checked + label::before {
-            background-color: #199f19;
-          }
-
-          &#age-group-55:checked + label::before {
-            background-color: #ff7f7f;
-          }
-
-          &#age-group-60:checked + label::before {
             background-color: #00d9ff;
           }
 
-          &#age-group-65:checked + label::before {
-            background-color: #ff207f;
+          &#age-group-30:checked + label::before {
+            background-color: #ffba74;
           }
 
-          &#age-group-70:checked + label::before {
-            background-color: #c7a92f;
+          &#age-group-35:checked + label::before {
+            background-color: #8cff3f;
           }
 
-          &#age-group-75:checked + label::before {
+          &#age-group-40:checked + label::before {
+            background-color: #ff4d4d;
+          }
+
+          &#age-group-45:checked + label::before {
+            background-color: #ffe258;
+          }
+
+          &#age-group-50:checked + label::before {
             background-color: #007fff;
           }
 
+          &#age-group-55:checked + label::before {
+            background-color: #ff7f00;
+          }
+
+          &#age-group-60:checked + label::before {
+            background-color: #199f19;
+          }
+
+          &#age-group-65:checked + label::before {
+            background-color: #e01a1a;
+          }
+
+          &#age-group-70:checked + label::before {
+            background-color: #e0b700;
+          }
+
+          &#age-group-75:checked + label::before {
+            background-color: #0020ff;
+          }
+
           &#age-group-80:checked + label::before {
-            background-color: #9774ff;
+            background-color: #bd5a00;
           }
 
           &#age-group-85:checked + label::before {
-            background-color: #7f2020;
+            background-color: #007300;
           }
 
           &#age-group-90:checked + label::before {
-            background-color: #ff9d3f;
+            background-color: #ad0404;
           }
 
           &#age-group-95:checked + label::before {
-            background-color: #007f5f;
+            background-color: #b99a00;
           }
         }
       }

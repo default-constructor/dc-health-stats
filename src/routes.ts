@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory} from "vue-router";
-import DeathsStats from "./views/DeathsChartView.vue";
+import DeathsStatsView from "./views/DeathsStatsView.vue";
 import Home from './views/Home.vue';
 
 const routes = [
@@ -11,7 +11,7 @@ const routes = [
   {
     name: 'deaths-stats',
     path: '/deaths-stats',
-    component: DeathsStats
+    component: DeathsStatsView
   },
 ];
 

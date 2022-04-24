@@ -41,7 +41,7 @@ export default defineComponent({
       const xScale = scaleBand().domain(xLabels).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
-      const areaColors = zColors && zColors.length > 0 ? zColors : schemeCategory10
+      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "ff")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
       const svg = createSvg(size, margin)
