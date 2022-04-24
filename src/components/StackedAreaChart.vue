@@ -23,6 +23,9 @@ export default defineComponent({
     chartData: {
       type: Array,
       required: true
+    },
+    colors: {
+      type: Array
     }
   },
 
@@ -34,11 +37,12 @@ export default defineComponent({
       height: size.height - margin.top - margin.bottom
     }
 
-    const createChart = (data: ChartData[], xLabels: string[], zLabels: string[]) => {
+    const createChart = (data: ChartData[], xLabels: string[], zLabels: string[], zColors: string[]) => {
       const xScale = scaleBand().domain(xLabels).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
-      const zScale = scaleOrdinal(schemeCategory10).domain(zLabels).range(schemeCategory10)
+      const areaColors = zColors && zColors.length > 0 ? zColors : schemeCategory10
+      const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
       const svg = createSvg(size, margin)
 
@@ -113,10 +117,11 @@ export default defineComponent({
 
     watchEffect(() => {
       const data = props.chartData as ChartData[]
-      const xLabels = [...new Set(data.map((d: ChartData) => d.x as string)).values()]
-      const zLabels = [...new Set(data.map((d: ChartData) => d.z as string)).values()]
+      const xLabels = [...new Set(data.map((d: ChartData) => d.x) as string[]).values()]
+      const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
+      const zColors = [...new Set(props.colors as string[]).values()]
 
-      createChart(data, xLabels, zLabels)
+      createChart(data, xLabels, zLabels, zColors)
     })
 
     return {}

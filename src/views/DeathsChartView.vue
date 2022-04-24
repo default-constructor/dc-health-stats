@@ -14,12 +14,13 @@ export default defineComponent({
 
     const groupedAgeGroupsCheckboxesRef = ref()
     const groupedAgeGroups = [
-      ["0-30", "30-35", "35-40"],
-      ["40-45", "45-50", "50-55"],
-      ["55-60", "60-65", "65-70"],
-      ["70-75", "75-80", "80-85"],
-      ["85-90", "90-95", "95 u. mehr"]
+      [{name: "0-30", color: "#8cff3f"}, {name: "30-35", color: "#7f3fff"}, {name: "35-40", color: "#c72f2f"}],
+      [{name: "40-45", color: "#0020ff"}, {name: "45-50", color: "#ff7f00"}, {name: "50-55", color: "#199f19"}],
+      [{name: "55-60", color: "#ff7f7f"}, {name: "60-65", color: "#00d9ff"}, {name: "65-70", color: "#ff207f"}],
+      [{name: "70-75", color: "#c7a92f"}, {name: "75-80", color: "#007fff"}, {name: "80-85", color: "#9774ff"}],
+      [{name: "85-90", color: "#7f2020"}, {name: "90-95", color: "#ff9d3f"}, {name: "95 u. mehr", color: "#007f5f"}]
     ]
+    const ageGroupColorsRef = ref()
 
     const minYear = 2005;
     const currentYear = (new Date()).getFullYear();
@@ -43,10 +44,12 @@ export default defineComponent({
           .flat() as string[]
 
       await loadTotalDeaths(fromYearRef.value, toYearRef.value, ageGroups)
-      chartDataRef.value = prepareChartData(result.value)
+
+      chartDataRef.value = getChartData(result.value)
+      ageGroupColorsRef.value = getAgeGroupColors(result.value)
     }
 
-    const prepareChartData = (data: TotalDeaths[]): ChartData[] => {
+    const getChartData = (data: TotalDeaths[]): ChartData[] => {
       return data.map((deaths => {
         return {
           x: ("0" + deaths.week).slice(-2) + "/" + deaths.year,
@@ -56,22 +59,32 @@ export default defineComponent({
       }))
     }
 
+    const getAgeGroupColors = (data: TotalDeaths[]): string[] => {
+      const ageGroups = [...new Set(data.map((deaths: TotalDeaths) => deaths.ageGroup)).values()];
+
+      return groupedAgeGroups.map((value: any[]) => value
+          .filter((item: any) => ageGroups.find((ageGroup: string) => ageGroup === item.name))
+          .map((item: any) => item.color))
+          .flat() as string[]
+    }
+
     watchEffect(() => {
       if (groupedAgeGroupsCheckboxesRef.value) {
         loadChartData()
       }
     })
 
-    groupedAgeGroupsCheckboxesRef.value = groupedAgeGroups.map((value: string[]) =>
-        value.map((ageGroup: string) => {
-          let endIndex = ageGroup.indexOf("-");
+    groupedAgeGroupsCheckboxesRef.value = groupedAgeGroups.map((value: any[]) =>
+        value.map((item: any) => {
+          const name = item.name
+          let endIndex = name.indexOf("-")
           if (endIndex === -1) {
-            endIndex = ageGroup.indexOf(" u. mehr")
+            endIndex = name.indexOf(" u. mehr")
           }
 
           return {
-            id: "age-group-" + ageGroup.substring(0, endIndex),
-            name: ageGroup as string,
+            id: "age-group-" + name.substring(0, endIndex),
+            name: name as string,
             checked: true as boolean
           } as any
         })
@@ -82,7 +95,8 @@ export default defineComponent({
       fromYearRef,
       toYearRef,
       yearsRef,
-      groupedAgeGroupsCheckboxesRef
+      groupedAgeGroupsCheckboxesRef,
+      ageGroupColorsRef
     }
   }
 })
@@ -92,7 +106,8 @@ export default defineComponent({
   <article id="deaths-chart-view">
     <h2>DeathsChartView</h2>
     <div class="death-chart">
-      <StackedAreaChart :chartData="chartDataRef" class="death-chart__chart"></StackedAreaChart>
+      <StackedAreaChart :chartData="chartDataRef" :colors="ageGroupColorsRef" class="death-chart__chart">
+      </StackedAreaChart>
       <div class="death-chart__legend">
         <ul class="legend__years">
           <li>
@@ -179,7 +194,7 @@ export default defineComponent({
               content: "";
               float: left;
               margin-right: 6px;
-              z-index: 5;
+              z-index: 1;
               position: relative;
             }
           }
