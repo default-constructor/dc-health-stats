@@ -64,7 +64,13 @@ export default defineComponent({
 
     groupedAgeGroupsCheckboxesRef.value = groupedAgeGroups.map((value: string[]) =>
         value.map((ageGroup: string) => {
+          let endIndex = ageGroup.indexOf("-");
+          if (endIndex === -1) {
+            endIndex = ageGroup.indexOf(" u. mehr")
+          }
+
           return {
+            id: "age-group-" + ageGroup.substring(0, endIndex),
             name: ageGroup as string,
             checked: true as boolean
           } as any
@@ -88,7 +94,7 @@ export default defineComponent({
     <div class="death-chart">
       <StackedAreaChart :chartData="chartDataRef" class="death-chart__chart"></StackedAreaChart>
       <div class="death-chart__legend">
-        <ul>
+        <ul class="legend__years">
           <li>
             <label>Von: </label>
             <select v-model="fromYearRef">
@@ -102,10 +108,10 @@ export default defineComponent({
             </select>
           </li>
         </ul>
-        <ul v-for="group in groupedAgeGroupsCheckboxesRef">
+        <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
           <li v-for="checkbox in group">
-            <input :id="checkbox.name" type="checkbox" v-model="checkbox.checked"/>
-            <label :for="checkbox.name">{{ checkbox.name }} Jährige</label>
+            <input :id="checkbox.id" type="checkbox" v-model="checkbox.checked"/>
+            <label :for="checkbox.id">{{ checkbox.name }} Jährige</label>
           </li>
         </ul>
       </div>
@@ -122,25 +128,121 @@ export default defineComponent({
     justify-content: flex-start;
     margin: 0 128px;
 
+    .legend__years {
+      li {
+        margin-bottom: 8px;
+
+        label {
+          margin-right: 4px;
+          width: 40px;
+          text-align: right;
+        }
+      }
+    }
+
+    .legend__age-groups {
+      li {
+        margin-bottom: 2px;
+      }
+    }
+
     ul {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
       list-style: none;
-      width: 192px;
+      min-width: 168px;
       margin: 0;
       padding: 0;
 
       li {
         display: flex;
-        margin: 4px 0;
         width: 100%;
+        height: 24px;
+        position: relative;
 
-        label {
-          min-width: 32px;
-          text-align: right;
-          margin: 0 4px;
+        input[type="checkbox"] {
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 0;
+          -webkit-appearance: none;
+
+          + label {
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            &::before {
+              width: 16px;
+              height: 16px;
+              background-color: white;
+              border: 1px solid #2c3e50;
+              display: block;
+              content: "";
+              float: left;
+              margin-right: 6px;
+              z-index: 5;
+              position: relative;
+            }
+          }
+
+          &#age-group-0:checked + label::before {
+            background-color: #8cff3f;
+          }
+
+          &#age-group-30:checked + label::before {
+            background-color: #7f3fff;
+          }
+
+          &#age-group-35:checked + label::before {
+            background-color: #c72f2f;
+          }
+
+          &#age-group-40:checked + label::before {
+            background-color: #0020ff;
+          }
+
+          &#age-group-45:checked + label::before {
+            background-color: #ff7f00;
+          }
+
+          &#age-group-50:checked + label::before {
+            background-color: #199f19;
+          }
+
+          &#age-group-55:checked + label::before {
+            background-color: #ff7f7f;
+          }
+
+          &#age-group-60:checked + label::before {
+            background-color: #00d9ff;
+          }
+
+          &#age-group-65:checked + label::before {
+            background-color: #ff207f;
+          }
+
+          &#age-group-70:checked + label::before {
+            background-color: #c7a92f;
+          }
+
+          &#age-group-75:checked + label::before {
+            background-color: #007fff;
+          }
+
+          &#age-group-80:checked + label::before {
+            background-color: #9774ff;
+          }
+
+          &#age-group-85:checked + label::before {
+            background-color: #7f2020;
+          }
+
+          &#age-group-90:checked + label::before {
+            background-color: #ff9d3f;
+          }
+
+          &#age-group-95:checked + label::before {
+            background-color: #007f5f;
+          }
         }
       }
     }
