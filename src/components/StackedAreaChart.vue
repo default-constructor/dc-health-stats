@@ -6,9 +6,9 @@ import {
   axisBottom,
   axisLeft,
   group,
-  scaleBand,
   scaleLinear,
   scaleOrdinal,
+  scalePoint,
   schemeCategory10,
   select,
   stack,
@@ -38,17 +38,17 @@ export default defineComponent({
     }
 
     const createChart = (data: ChartData[], xLabels: string[], zLabels: string[], zColors: string[]) => {
-      const xScale = scaleBand().domain(xLabels).range([0, chart.width])
+      const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
-      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "ff")
+      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "dd")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
       const svg = createSvg(size, margin)
 
       svg.append("g")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).ticks(52))
+          .call(axisBottom(xScale))
 
       svg.append("g")
           .call(axisLeft(yScale))

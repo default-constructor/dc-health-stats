@@ -14,11 +14,11 @@ export default defineComponent({
 
     const groupedAgeGroupsCheckboxesRef = ref()
     const groupedAgeGroups = [
-      [{name: "0-30", color: "#00d9ff"}, {name: "30-35", color: "#ffba74"}, {name: "35-40", color: "#8cff3f"}],
-      [{name: "40-45", color: "#ff4d4d"}, {name: "45-50", color: "#ffe258"}, {name: "50-55", color: "#007fff"}],
-      [{name: "55-60", color: "#ff7f00"}, {name: "60-65", color: "#199f19"}, {name: "65-70", color: "#e01a1a"}],
-      [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#bd5a00"}],
-      [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#ad0404"}, {name: "95 u. mehr", color: "#b99a00"}]
+      [{name: "0-30", color: "#00d9ff"}, {name: "30-35", color: "#ff4d4d"}, {name: "35-40", color: "#8cff3f"}],
+      [{name: "40-45", color: "#8565e1"}, {name: "45-50", color: "#ffe258"}, {name: "50-55", color: "#007fff"}],
+      [{name: "55-60", color: "#e01a1a"}, {name: "60-65", color: "#199f19"}, {name: "65-70", color: "#7f3fff"}],
+      [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#ad0404"}],
+      [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#572ea8"}, {name: "95 u. mehr", color: "#b99a00"}]
     ]
     const ageGroupColorsRef = ref()
 
@@ -204,7 +204,7 @@ export default defineComponent({
           }
 
           &#age-group-30:checked + label::before {
-            background-color: #ffba74;
+            background-color: #ff4d4d;
           }
 
           &#age-group-35:checked + label::before {
@@ -212,7 +212,7 @@ export default defineComponent({
           }
 
           &#age-group-40:checked + label::before {
-            background-color: #ff4d4d;
+            background-color: #8565e1;
           }
 
           &#age-group-45:checked + label::before {
@@ -224,7 +224,7 @@ export default defineComponent({
           }
 
           &#age-group-55:checked + label::before {
-            background-color: #ff7f00;
+            background-color: #e01a1a;
           }
 
           &#age-group-60:checked + label::before {
@@ -232,7 +232,7 @@ export default defineComponent({
           }
 
           &#age-group-65:checked + label::before {
-            background-color: #e01a1a;
+            background-color: #7f3fff;
           }
 
           &#age-group-70:checked + label::before {
@@ -244,7 +244,7 @@ export default defineComponent({
           }
 
           &#age-group-80:checked + label::before {
-            background-color: #bd5a00;
+            background-color: #ad0404;
           }
 
           &#age-group-85:checked + label::before {
@@ -252,7 +252,7 @@ export default defineComponent({
           }
 
           &#age-group-90:checked + label::before {
-            background-color: #ad0404;
+            background-color: #572ea8;
           }
 
           &#age-group-95:checked + label::before {
