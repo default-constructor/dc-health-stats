@@ -30,7 +30,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const margin = {left: 64, top: 16, right: 64, bottom: 16}
+    const margin = {left: 64, top: 16, right: 64, bottom: 64}
     const size = {width: 1280, height: 512}
     const chart = {
       width: size.width - margin.left - margin.right,
@@ -41,17 +41,44 @@ export default defineComponent({
       const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
-      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "dd")
+      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "99")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
       const svg = createSvg(size, margin)
 
+      function getXTickValues() {
+        if (xLabels.length <= 53) {
+          return xLabels
+        }
+
+        const offset = Math.trunc(xLabels.length / 53)
+        return xLabels.filter((label: string) =>
+            parseInt(label.substring(0, label.indexOf("/"))) % offset == 0
+        );
+      }
+
+      const xTicks = getXTickValues()
+
       svg.append("g")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale))
+          .call(axisBottom(xScale).tickValues(xTicks))
+          .selectAll("text")
+          .attr("x", -24)
+          .attr("y", 8)
+          .attr("dy", ".5em")
+          .attr("transform", "rotate(-45)")
 
       svg.append("g")
           .call(axisLeft(yScale))
+
+      svg.append("g")
+          .attr("class", "grid")
+          .attr("transform", "translate(0," + chart.height + ")")
+          .call(axisBottom(xScale).tickSize(-chart.height).tickFormat(() => ""))
+
+      svg.append("g")
+          .attr("class", "grid")
+          .call(axisLeft(yScale).tickSize(-chart.width).tickFormat(() => ""))
 
       svg.selectAll("layers")
           .data(createStack(data))
@@ -141,5 +168,15 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
+.grid {
+  line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+  }
 
+  path {
+    stroke-width: 0;
+  }
+}
 </style>
