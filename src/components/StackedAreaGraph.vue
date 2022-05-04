@@ -1,23 +1,11 @@
 <script lang="ts">
 import {defineComponent, watchEffect} from "vue"
 import {ChartData} from "../models/chart-data.model"
-import {
-  area,
-  axisBottom,
-  axisLeft,
-  group,
-  scaleLinear,
-  scaleOrdinal,
-  scalePoint,
-  schemeCategory10,
-  select,
-  stack,
-  sum
-} from "d3"
+import {area, group, scaleLinear, scaleOrdinal, scalePoint, schemeCategory10, select, stack, sum} from "d3"
 import {Area} from "d3-shape"
 
 export default defineComponent({
-  name: 'StackedAreaChart',
+  name: "StackedAreaGraph",
   components: {},
   props: {
     chartData: {
@@ -37,50 +25,19 @@ export default defineComponent({
       height: size.height - margin.top - margin.bottom
     }
 
-    const createChart = (data: ChartData[], xLabels: string[], zLabels: string[], zColors: string[]) => {
+    const createGraph = (data: ChartData[], xLabels: string[], zLabels: string[], zColors: string[]) => {
       const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
       const maxYScale = getMaxYScale(data)
       const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
       const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "99")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
-      const svg = createSvg(size, margin)
+      const graph = select(".stacked-area-graph")
+      graph.selectChild().remove()
 
-      function getXTickValues() {
-        if (xLabels.length <= 53) {
-          return xLabels
-        }
+      const graphArea = graph.append("g").attr("class", "stacked-area-graph__area")
 
-        const offset = Math.trunc(xLabels.length / 53)
-        return xLabels.filter((label: string) =>
-            parseInt(label.substring(0, label.indexOf("/"))) % offset == 0
-        );
-      }
-
-      const xTicks = getXTickValues()
-
-      svg.append("g")
-          .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).tickValues(xTicks))
-          .selectAll("text")
-          .attr("x", -24)
-          .attr("y", 8)
-          .attr("dy", ".5em")
-          .attr("transform", "rotate(-45)")
-
-      svg.append("g")
-          .call(axisLeft(yScale))
-
-      svg.append("g")
-          .attr("class", "grid")
-          .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).tickSize(-chart.height).tickFormat(() => ""))
-
-      svg.append("g")
-          .attr("class", "grid")
-          .call(axisLeft(yScale).tickSize(-chart.width).tickFormat(() => ""))
-
-      svg.selectAll("layers")
+      graphArea.selectAll("layers")
           .data(createStack(data))
           .enter()
           .append("path")
@@ -93,16 +50,6 @@ export default defineComponent({
           .x((d: any) => xScale(d.data['x']))
           .y0((d: any[]) => yScale(d[0]))
           .y1((d: any[]) => yScale(d[1]))
-    }
-
-    const getMaxYScale = (data: ChartData[]): number => {
-      const grouped = new Map()
-      for (const d of data) {
-        const sum = (grouped.has(d.x) ? grouped.get(d.x) : 0) + d.y
-        grouped.set(d.x, sum)
-      }
-
-      return Math.max(...Array.from(grouped.values()) as number[])
     }
 
     const createStack = (data: ChartData[]) => {
@@ -130,16 +77,16 @@ export default defineComponent({
           (tabledData)
     }
 
-    const createSvg = (size: any, margin: any) => {
-      let selection = select("#stacked-area-graph")
-      selection.selectChild().remove()
+    const getMaxYScale = (data: ChartData[]): number => {
+      const grouped = new Map()
+      for (const d of data) {
+        const sum = (grouped.has(d.x) ? grouped.get(d.x) : 0) + d.y
+        grouped.set(d.x, sum)
+      }
 
-      return selection
-          .append("svg")
-          .attr("width", size.width)
-          .attr("height", size.height)
-          .append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+      const maxYValue = Math.max(...Array.from(grouped.values()) as number[]);
+
+      return maxYValue + (maxYValue * 5 / 100)
     }
 
     watchEffect(() => {
@@ -148,7 +95,7 @@ export default defineComponent({
       const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
       const zColors = [...new Set(props.colors as string[]).values()]
 
-      createChart(data, xLabels, zLabels, zColors)
+      createGraph(data, xLabels, zLabels, zColors)
     })
 
     return {}
@@ -157,26 +104,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="stacked-area-chart">
-    <div class="stacked-area-chart__graph">
-      <div id="stacked-area-graph"></div>
-    </div>
-    <div class="stacked-area-chart__legend">
-
-    </div>
-  </div>
+  <g class="stacked-area-graph"></g>
 </template>
 
 <style lang="scss">
-.grid {
-  line {
-    stroke: lightgrey;
-    stroke-opacity: 0.7;
-    shape-rendering: crispEdges;
-  }
 
-  path {
-    stroke-width: 0;
-  }
-}
 </style>

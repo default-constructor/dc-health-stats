@@ -1,13 +1,15 @@
 <script lang="ts">
 import {defineComponent, ref, watchEffect} from "vue"
 import {useTotalDeathsApi} from "../apis/total-deaths.api"
-import StackedAreaChart from "../components/StackedAreaChart.vue"
+import StackedAreaGraph from "../components/StackedAreaGraph.vue"
 import {ChartData} from "../models/chart-data.model"
 import {TotalDeaths} from "../models/total-deaths.model"
+import Chart from "../components/Chart.vue";
+import {PcrPlusDeaths} from "../models/pcr-plus-deaths.model";
 
 export default defineComponent({
-  name: 'DeathsStatsView',
-  components: {StackedAreaChart},
+  name: "DeathsStatsView",
+  components: {Chart, StackedAreaGraph},
 
   setup() {
     const chartDataRef = ref([] as ChartData[])
@@ -20,6 +22,9 @@ export default defineComponent({
       [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#ad0404"}],
       [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#572ea8"}, {name: "95 u. mehr", color: "#b99a00"}]
     ]
+
+    const maxYValueRef = ref(0)
+    const xLabelsRef = ref([] as string[])
     const ageGroupColorsRef = ref()
 
     const minYear = 2005;
@@ -45,16 +50,27 @@ export default defineComponent({
 
       await loadTotalDeaths(fromYearRef.value, toYearRef.value, ageGroups)
 
-      chartDataRef.value = getChartData(result.value)
+      chartDataRef.value = getTotalDeathsChartData(result.value)
+      maxYValueRef.value = Math.max(...Array.from(getGroupedData(chartDataRef.value).values()) as number[])
+      xLabelsRef.value = [...new Set(chartDataRef.value.map((d: ChartData) => d.x) as string[]).values()]
       ageGroupColorsRef.value = getAgeGroupColors(result.value)
     }
 
-    const getChartData = (data: TotalDeaths[]): ChartData[] => {
+    const getTotalDeathsChartData = (data: TotalDeaths[]): ChartData[] => {
       return data.map((deaths => {
         return {
           x: ("0" + deaths.week).slice(-2) + "/" + deaths.year,
           y: deaths.count,
           z: deaths.ageGroup
+        } as ChartData
+      }))
+    }
+
+    const getPcrPlusDeathsChartData = (data: PcrPlusDeaths[]): ChartData[] => {
+      return data.map((deaths => {
+        return {
+          x: ("0" + deaths.week).slice(-2) + "/" + deaths.year,
+          y: deaths.count
         } as ChartData
       }))
     }
@@ -66,6 +82,16 @@ export default defineComponent({
           .filter((item: any) => ageGroups.find((ageGroup: string) => ageGroup === item.name))
           .map((item: any) => item.color))
           .flat() as string[]
+    }
+
+    const getGroupedData = (data: ChartData[]) => {
+      const grouped = new Map()
+      for (const d of data) {
+        const sum = (grouped.has(d.x) ? grouped.get(d.x) : 0) + d.y
+        grouped.set(d.x, sum)
+      }
+
+      return grouped
     }
 
     watchEffect(() => {
@@ -96,6 +122,8 @@ export default defineComponent({
       toYearRef,
       yearsRef,
       groupedAgeGroupsCheckboxesRef,
+      maxYValueRef,
+      xLabelsRef,
       ageGroupColorsRef
     }
   }
@@ -103,33 +131,44 @@ export default defineComponent({
 </script>
 
 <template>
-  <article id="deaths-chart-view">
-    <h2>DeathsStatsView</h2>
+  <article id="deaths-stats-view">
     <div class="death-stats">
-      <StackedAreaChart :chartData="chartDataRef" :colors="ageGroupColorsRef" class="death-stats__chart">
-      </StackedAreaChart>
-      <div class="death-stats__legend">
-        <ul class="legend__years">
-          <li>
-            <label>Von Anfang </label>
-            <select v-model="fromYearRef">
-              <option v-for="year in yearsRef" :value="year">{{ year }}</option>
-            </select>
-          </li>
-          <li>
-            <label>Bis Ende </label>
-            <select v-model="toYearRef">
-              <option v-for="year in yearsRef" :value="year">{{ year }}</option>
-            </select>
-          </li>
-        </ul>
-        <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
-          <li v-for="checkbox in group">
-            <input :id="checkbox.id" type="checkbox" v-model="checkbox.checked"/>
-            <label :for="checkbox.id">{{ checkbox.name }} Jährige</label>
-          </li>
-        </ul>
-      </div>
+      <Chart id="deaths-stats-chart" :xLabels="xLabelsRef" :maxYValue="maxYValueRef">
+        <template v-slot:graph>
+          <StackedAreaGraph :chartData="chartDataRef" :colors="ageGroupColorsRef">
+          </StackedAreaGraph>
+        </template>
+        <template v-slot:legend>
+          <div class="death-stats__legend">
+            <ul class="legend__years">
+              <li>
+                <label>Von Anfang </label>
+                <select v-model="fromYearRef">
+                  <option v-for="year in yearsRef" :value="year">{{ year }}</option>
+                </select>
+              </li>
+              <li>
+                <label>Bis Ende </label>
+                <select v-model="toYearRef">
+                  <option v-for="year in yearsRef" :value="year">{{ year }}</option>
+                </select>
+              </li>
+            </ul>
+            <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
+              <li v-for="checkbox in group">
+                <input :id="checkbox.id" type="checkbox" v-model="checkbox.checked" hidden/>
+                <label :for="checkbox.id">{{ checkbox.name }} Jährige</label>
+              </li>
+            </ul>
+          </div>
+        </template>
+        <template v-slot:info>
+          <div class="death-stats__reference">
+            <b>Quellen:</b><br>
+            <span>Statistisches Bundesamt (<a href="https://www.destatis.de" target="_blank">www.destatis.de</a>)</span>
+          </div>
+        </template>
+      </Chart>
     </div>
   </article>
 </template>
@@ -142,24 +181,6 @@ export default defineComponent({
     display: flex;
     justify-content: flex-start;
     margin: 0 128px;
-
-    .legend__years {
-      li {
-        margin-bottom: 8px;
-
-        label {
-          margin-right: 4px;
-          width: 88px;
-          text-align: right;
-        }
-      }
-    }
-
-    .legend__age-groups {
-      li {
-        margin-bottom: 2px;
-      }
-    }
 
     ul {
       list-style: none;
@@ -259,6 +280,24 @@ export default defineComponent({
             background-color: #b99a00;
           }
         }
+      }
+    }
+
+    .legend__years {
+      li {
+        margin-bottom: 8px;
+
+        label {
+          margin-right: 4px;
+          width: 88px;
+          text-align: right;
+        }
+      }
+    }
+
+    .legend__age-groups {
+      li {
+        margin-bottom: 2px;
       }
     }
   }
