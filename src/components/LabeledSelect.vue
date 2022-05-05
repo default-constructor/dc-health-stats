@@ -2,6 +2,7 @@
 import {defineEmits, defineProps} from "vue"
 
 const props = defineProps({
+  id: String,
   label: String,
   modelValue: String,
   options: Array
@@ -16,8 +17,8 @@ const updateModelValue = (event: any) => {
 
 <template>
   <div class="labeled-select">
-    <label>{{ label }}</label>
-    <select :value="modelValue" @input="updateModelValue">
+    <label :for="id">{{ label }}</label>
+    <select :id="id" :value="modelValue" @input="updateModelValue">
       <option v-for="option in options" :value="option">{{ option }}</option>
     </select>
   </div>

@@ -143,8 +143,14 @@ export default defineComponent({
         <template v-slot:legend>
           <div class="death-stats__legend">
             <ul class="legend__years">
-              <li><LabeledSelect label="Von Anfang " v-model="fromYearRef" :options="yearsRef"></LabeledSelect></li>
-              <li><LabeledSelect label="Bis Ende " v-model="toYearRef" :options="yearsRef"></LabeledSelect></li>
+              <li>
+                <LabeledSelect id="from-year" label="Von Anfang " v-model="fromYearRef" :options="yearsRef">
+                </LabeledSelect>
+              </li>
+              <li>
+                <LabeledSelect id="to-year" label="Bis Ende " v-model="toYearRef" :options="yearsRef">
+                </LabeledSelect>
+              </li>
             </ul>
             <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
               <li v-for="checkbox in group">
@@ -175,6 +181,10 @@ export default defineComponent({
   &__legend {
     ul {
       li {
+        .labeled-select {
+          margin-right: 24px;
+        }
+
         .labeled-checkbox input {
           position: absolute;
           top: 0;
@@ -284,6 +294,7 @@ export default defineComponent({
 
       li {
         display: flex;
+        justify-content: flex-end;
         width: 100%;
         height: 24px;
         position: relative;
@@ -292,6 +303,7 @@ export default defineComponent({
 
     .legend__years {
       li {
+        align-items: flex-end;
         margin-bottom: 8px;
 
         label {
