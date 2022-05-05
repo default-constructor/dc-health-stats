@@ -6,10 +6,12 @@ import {ChartData} from "../models/chart-data.model"
 import {TotalDeaths} from "../models/total-deaths.model"
 import Chart from "../components/Chart.vue";
 import {PcrPlusDeaths} from "../models/pcr-plus-deaths.model";
+import LabeledSelect from "../components/LabeledSelect.vue";
+import LabeledCheckbox from "../components/LabeledCheckbox.vue";
 
 export default defineComponent({
   name: "DeathsStatsView",
-  components: {Chart, StackedAreaGraph},
+  components: {LabeledCheckbox, LabeledSelect, Chart, StackedAreaGraph},
 
   setup() {
     const chartDataRef = ref([] as ChartData[])
@@ -75,13 +77,13 @@ export default defineComponent({
       }))
     }
 
-    const getAgeGroupColors = (data: TotalDeaths[]): string[] => {
+    const getAgeGroupColors = (data: TotalDeaths[]): String[] => {
       const ageGroups = [...new Set(data.map((deaths: TotalDeaths) => deaths.ageGroup)).values()];
 
       return groupedAgeGroups.map((value: any[]) => value
-          .filter((item: any) => ageGroups.find((ageGroup: string) => ageGroup === item.name))
+          .filter((item: any) => ageGroups.find((ageGroup: String) => ageGroup === item.name))
           .map((item: any) => item.color))
-          .flat() as string[]
+          .flat() as String[]
     }
 
     const getGroupedData = (data: ChartData[]) => {
@@ -110,8 +112,8 @@ export default defineComponent({
 
           return {
             id: "age-group-" + name.substring(0, endIndex),
-            name: name as string,
-            checked: true as boolean
+            name: name as String,
+            checked: true
           } as any
         })
     )
@@ -141,23 +143,18 @@ export default defineComponent({
         <template v-slot:legend>
           <div class="death-stats__legend">
             <ul class="legend__years">
-              <li>
-                <label>Von Anfang </label>
-                <select v-model="fromYearRef">
-                  <option v-for="year in yearsRef" :value="year">{{ year }}</option>
-                </select>
-              </li>
-              <li>
-                <label>Bis Ende </label>
-                <select v-model="toYearRef">
-                  <option v-for="year in yearsRef" :value="year">{{ year }}</option>
-                </select>
-              </li>
+              <li><LabeledSelect label="Von Anfang " v-model="fromYearRef" :options="yearsRef"></LabeledSelect></li>
+              <li><LabeledSelect label="Bis Ende " v-model="toYearRef" :options="yearsRef"></LabeledSelect></li>
             </ul>
             <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
               <li v-for="checkbox in group">
-                <input :id="checkbox.id" type="checkbox" v-model="checkbox.checked" hidden/>
-                <label :for="checkbox.id">{{ checkbox.name }} Jährige</label>
+                <LabeledCheckbox
+                    :id="checkbox.id"
+                    :label="checkbox.name + ' Jährige'"
+                    v-model="checkbox.checked"
+                    hideCheckbox="true"
+                >
+                </LabeledCheckbox>
               </li>
             </ul>
           </div>
@@ -173,28 +170,12 @@ export default defineComponent({
   </article>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .death-stats {
-  margin: 0 32px;
-
   &__legend {
-    display: flex;
-    justify-content: flex-start;
-    margin: 0 128px;
-
     ul {
-      list-style: none;
-      min-width: 168px;
-      margin: 0;
-      padding: 0;
-
       li {
-        display: flex;
-        width: 100%;
-        height: 24px;
-        position: relative;
-
-        input[type="checkbox"] {
+        .labeled-checkbox input {
           position: absolute;
           top: 0;
           left: 0;
@@ -280,6 +261,32 @@ export default defineComponent({
             background-color: #b99a00;
           }
         }
+      }
+    }
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+.death-stats {
+  margin: 0 32px;
+
+  &__legend {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 128px;
+
+    ul {
+      list-style: none;
+      min-width: 168px;
+      margin: 0;
+      padding: 0;
+
+      li {
+        display: flex;
+        width: 100%;
+        height: 24px;
+        position: relative;
       }
     }
 

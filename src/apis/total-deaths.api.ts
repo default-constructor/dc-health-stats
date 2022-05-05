@@ -11,11 +11,7 @@ export const useTotalDeathsApi = () => {
   const result = ref()
   const error = ref()
 
-  const loadTotalDeaths = async (
-      from?: number,
-      to?: number,
-      ageGroups?: string[]
-  ) => {
+  const loadTotalDeaths = async (from?: number, to?: number, ageGroups?: string[]) => {
     loading.value = true
     error.value = undefined
 
