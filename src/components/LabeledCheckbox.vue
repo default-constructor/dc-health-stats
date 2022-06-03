@@ -4,8 +4,7 @@ import {defineEmits, defineProps} from "vue"
 const props = defineProps({
   id: String,
   label: String,
-  modelValue: Boolean,
-  hideCheckbox: Boolean
+  modelValue: Boolean
 })
 
 const emit = defineEmits(["update:modelValue"])

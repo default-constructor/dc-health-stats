@@ -39,8 +39,8 @@ export const useTotalDeathsApi = () => {
 
   return {
     loadTotalDeaths,
-    loading,
-    result,
-    error
+    totalDeathsLoading: loading,
+    totalDeathsResult: result,
+    totalDeathsError: error
   }
 }

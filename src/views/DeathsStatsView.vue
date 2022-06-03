@@ -8,13 +8,16 @@ import Chart from "../components/Chart.vue";
 import {PcrPlusDeaths} from "../models/pcr-plus-deaths.model";
 import LabeledSelect from "../components/LabeledSelect.vue";
 import LabeledCheckbox from "../components/LabeledCheckbox.vue";
+import AreaGraph from "../components/AreaGraph.vue";
+import {usePcrPlusDeathsApi} from "../apis/pcr-plus-deaths.api";
 
 export default defineComponent({
   name: "DeathsStatsView",
-  components: {LabeledCheckbox, LabeledSelect, Chart, StackedAreaGraph},
+  components: {AreaGraph, LabeledCheckbox, LabeledSelect, Chart, StackedAreaGraph},
 
   setup() {
-    const chartDataRef = ref([] as ChartData[])
+    const totalDeathsChartDataRef = ref([] as ChartData[])
+    const pcrPlusDeathsChartDataRef = ref([] as ChartData[])
 
     const groupedAgeGroupsCheckboxesRef = ref()
     const groupedAgeGroups = [
@@ -24,6 +27,8 @@ export default defineComponent({
       [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#ad0404"}],
       [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#572ea8"}, {name: "95 u. mehr", color: "#b99a00"}]
     ]
+
+    const pcrPlusDeathsCheckboxCheckedRef = ref(false)
 
     const maxYValueRef = ref(0)
     const xLabelsRef = ref([] as string[])
@@ -35,9 +40,21 @@ export default defineComponent({
     const toYearRef = ref(currentYear)
     const yearsRef = ref(Array.from(Array(currentYear - minYear + 1), (_, i) => minYear + i))
 
-    const {loadTotalDeaths, loading, result, error} = useTotalDeathsApi()
+    const {loadTotalDeaths, totalDeathsResult} = useTotalDeathsApi()
+    const {loadPcrPlusDeaths, pcrPlusDeathsResult} = usePcrPlusDeathsApi()
 
-    const loadChartData = async () => {
+    const loadPcrPlusDeathsData = async () => {
+      if (fromYearRef.value > toYearRef.value) {
+        return
+      }
+
+      loadPcrPlusDeaths(fromYearRef.value, toYearRef.value)
+          .then(() => {
+            pcrPlusDeathsChartDataRef.value = getPcrPlusDeathsChartData(pcrPlusDeathsResult.value)
+          })
+    }
+
+    const loadTotalDeathsData = async () => {
       if (fromYearRef.value > toYearRef.value) {
         return
       }
@@ -50,12 +67,13 @@ export default defineComponent({
           )
           .flat() as string[]
 
-      await loadTotalDeaths(fromYearRef.value, toYearRef.value, ageGroups)
-
-      chartDataRef.value = getTotalDeathsChartData(result.value)
-      maxYValueRef.value = Math.max(...Array.from(getGroupedData(chartDataRef.value).values()) as number[])
-      xLabelsRef.value = [...new Set(chartDataRef.value.map((d: ChartData) => d.x) as string[]).values()]
-      ageGroupColorsRef.value = getAgeGroupColors(result.value)
+      loadTotalDeaths(fromYearRef.value, toYearRef.value, ageGroups)
+          .then(() => {
+            totalDeathsChartDataRef.value = getTotalDeathsChartData(totalDeathsResult.value)
+            ageGroupColorsRef.value = getAgeGroupColors(totalDeathsResult.value)
+            xLabelsRef.value = [...new Set(totalDeathsChartDataRef.value.map((d: ChartData) => d.x) as string[]).values()]
+            maxYValueRef.value = Math.max(...Array.from(getGroupedData(totalDeathsChartDataRef.value).values()) as number[])
+          })
     }
 
     const getTotalDeathsChartData = (data: TotalDeaths[]): ChartData[] => {
@@ -98,7 +116,7 @@ export default defineComponent({
 
     watchEffect(() => {
       if (groupedAgeGroupsCheckboxesRef.value) {
-        loadChartData()
+        loadTotalDeathsData()
       }
     })
 
@@ -118,12 +136,16 @@ export default defineComponent({
         })
     )
 
+    loadPcrPlusDeathsData()
+
     return {
-      chartDataRef,
+      totalDeathsChartDataRef,
+      pcrPlusDeathsChartDataRef,
       fromYearRef,
       toYearRef,
       yearsRef,
       groupedAgeGroupsCheckboxesRef,
+      pcrPlusDeathsCheckboxCheckedRef,
       maxYValueRef,
       xLabelsRef,
       ageGroupColorsRef
@@ -136,9 +158,20 @@ export default defineComponent({
   <article id="deaths-stats-view">
     <div class="death-stats">
       <Chart id="deaths-stats-chart" :xLabels="xLabelsRef" :maxYValue="maxYValueRef">
-        <template v-slot:graph>
-          <StackedAreaGraph :chartData="chartDataRef" :colors="ageGroupColorsRef">
+        <template v-slot:graph="graph">
+          <StackedAreaGraph
+              :xLabels="xLabelsRef"
+              :maxYValue="maxYValueRef"
+              :chartData="totalDeathsChartDataRef"
+              :colors="ageGroupColorsRef"
+          >
           </StackedAreaGraph>
+          <AreaGraph
+              :xLabels="xLabelsRef"
+              :maxYValue="maxYValueRef"
+              :chartData="pcrPlusDeathsChartDataRef"
+          >
+          </AreaGraph>
         </template>
         <template v-slot:legend>
           <div class="death-stats__legend">
@@ -151,6 +184,14 @@ export default defineComponent({
                 <LabeledSelect id="to-year" label="Bis Ende " v-model="toYearRef" :options="yearsRef">
                 </LabeledSelect>
               </li>
+              <li>
+                <LabeledCheckbox
+                    id="pcr-plus-deaths"
+                    label="PCR+ anzeigen"
+                    v-model="pcrPlusDeathsCheckboxCheckedRef"
+                >
+                </LabeledCheckbox>
+              </li>
             </ul>
             <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
               <li v-for="checkbox in group">
@@ -158,7 +199,6 @@ export default defineComponent({
                     :id="checkbox.id"
                     :label="checkbox.name + ' Jährige'"
                     v-model="checkbox.checked"
-                    hideCheckbox="true"
                 >
                 </LabeledCheckbox>
               </li>

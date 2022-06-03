@@ -8,6 +8,8 @@ export default defineComponent({
   name: "StackedAreaGraph",
   components: {},
   props: {
+    xLabels: Array,
+    maxYValue: Number,
     chartData: {
       type: Array,
       required: true
@@ -25,11 +27,17 @@ export default defineComponent({
       height: size.height - margin.top - margin.bottom
     }
 
-    const createGraph = (data: ChartData[], xLabels: string[], zLabels: string[], zColors: string[]) => {
+    const createGraph = (
+        data: ChartData[],
+        xLabels: string[],
+        maxYValue: number,
+        zLabels: string[],
+        zColors: string[]
+    ) => {
       const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
-      const maxYScale = getMaxYScale(data)
-      const yScale = scaleLinear().domain([0, maxYScale]).range([chart.height, 0])
-      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10).map((color: string) => color + "99")
+      const yScale = scaleLinear().domain([0, maxYValue]).range([chart.height, 0])
+      const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10)
+          .map((color: string) => color + "99")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
 
       const graph = select(".stacked-area-graph")
@@ -77,25 +85,12 @@ export default defineComponent({
           (tabledData)
     }
 
-    const getMaxYScale = (data: ChartData[]): number => {
-      const grouped = new Map()
-      for (const d of data) {
-        const sum = (grouped.has(d.x) ? grouped.get(d.x) : 0) + d.y
-        grouped.set(d.x, sum)
-      }
-
-      const maxYValue = Math.max(...Array.from(grouped.values()) as number[]);
-
-      return maxYValue + (maxYValue * 5 / 100)
-    }
-
     watchEffect(() => {
       const data = props.chartData as ChartData[]
-      const xLabels = [...new Set(data.map((d: ChartData) => d.x) as string[]).values()]
       const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
       const zColors = [...new Set(props.colors as string[]).values()]
 
-      createGraph(data, xLabels, zLabels, zColors)
+      createGraph(data, props.xLabels as string[], props.maxYValue as number, zLabels, zColors)
     })
 
     return {}
