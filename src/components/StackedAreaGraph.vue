@@ -1,15 +1,14 @@
 <script lang="ts">
 import {defineComponent, watchEffect} from "vue"
 import {ChartData} from "../models/chart-data.model"
-import {area, group, scaleLinear, scaleOrdinal, scalePoint, schemeCategory10, select, stack, sum} from "d3"
+import {area, group, scaleOrdinal, schemeCategory10, select, stack, sum} from "d3"
 import {Area} from "d3-shape"
 
 export default defineComponent({
   name: "StackedAreaGraph",
   components: {},
   props: {
-    xLabels: Array,
-    maxYValue: Number,
+    scale: Object,
     chartData: {
       type: Array,
       required: true
@@ -20,22 +19,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const margin = {left: 64, top: 16, right: 64, bottom: 64}
-    const size = {width: 1280, height: 512}
-    const chart = {
-      width: size.width - margin.left - margin.right,
-      height: size.height - margin.top - margin.bottom
-    }
-
-    const createGraph = (
-        data: ChartData[],
-        xLabels: string[],
-        maxYValue: number,
-        zLabels: string[],
-        zColors: string[]
-    ) => {
-      const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
-      const yScale = scaleLinear().domain([0, maxYValue]).range([chart.height, 0])
+    const createGraph = (scale: any, data: ChartData[], zLabels: string[], zColors: string[]) => {
       const areaColors = (zColors && zColors.length > 0 ? zColors : schemeCategory10)
           .map((color: string) => color + "99")
       const zScale = scaleOrdinal(areaColors).domain(zLabels).range(areaColors)
@@ -50,14 +34,14 @@ export default defineComponent({
           .enter()
           .append("path")
           .style("fill", (d: any, key: any) => zScale(zLabels[key]))
-          .attr("d", createArea(xScale, yScale))
+          .attr("d", createArea(scale))
     }
 
-    const createArea = (xScale: any, yScale: any): Area<any> => {
+    const createArea = (scale: any): Area<any> => {
       return area()
-          .x((d: any) => xScale(d.data['x']))
-          .y0((d: any[]) => yScale(d[0]))
-          .y1((d: any[]) => yScale(d[1]))
+          .x((d: any) => scale.x(d.data['x']))
+          .y0((d: any[]) => scale.y(d[0]))
+          .y1((d: any[]) => scale.y(d[1]))
     }
 
     const createStack = (data: ChartData[]) => {
@@ -86,10 +70,14 @@ export default defineComponent({
     }
 
     watchEffect(() => {
-      if (props.chartData && props.xLabels && props.colors) {
+      if (props.scale && props.chartData && props.colors) {
         const data = props.chartData as ChartData[]
-        const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
-        createGraph(data, props.xLabels as string[], props.maxYValue as number, zLabels, props.colors as string[])
+        createGraph(
+            props.scale as any,
+            data,
+            [...new Set(data.map((d: ChartData) => d.z) as string[]).values()],
+            props.colors as string[]
+        )
       }
     })
 

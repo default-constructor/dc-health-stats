@@ -22,12 +22,9 @@ export default defineComponent({
       width: sizeRef.value.width - marginRef.value.left - marginRef.value.right,
       height: sizeRef.value.height - marginRef.value.top - marginRef.value.bottom
     }
+    const scaleRef = ref()
 
-    const createChart = (xLabels: string[]) => {
-      const xScale = scalePoint().domain(xLabels).align(0).range([0, chart.width])
-      const maxYValue = props.maxYValue
-      const yScale = scaleLinear().domain([0, maxYValue + (maxYValue * 5 / 100)]).range([chart.height, 0])
-
+    const createChart = (scale: any, tickValues: string[]) => {
       const chartArea = select("#chart-area")
 
       const areaScale = chartArea.select(".area__scale")
@@ -38,14 +35,14 @@ export default defineComponent({
       scaleArea
           .append("g")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).tickValues(getXTickValues(xLabels)))
+          .call(axisBottom(scale.x).tickValues(tickValues))
           .selectAll("text")
           .attr("x", -24)
           .attr("y", 8)
           .attr("dy", ".5em")
           .attr("transform", "rotate(-45)")
 
-      scaleArea.append("g").call(axisLeft(yScale))
+      scaleArea.append("g").call(axisLeft(scale.y))
 
       const areaGrid = chartArea.select(".area__grid")
       areaGrid.selectChild().remove()
@@ -56,12 +53,12 @@ export default defineComponent({
           .append("g")
           .attr("class", "grid grid--x")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(xScale).tickSize(-chart.height).tickFormat(() => ""))
+          .call(axisBottom(scale.x).tickSize(-chart.height).tickFormat(() => ""))
 
       gridArea
           .append("g")
           .attr("class", "grid grid--y")
-          .call(axisLeft(yScale).tickSize(-chart.width).tickFormat(() => ""))
+          .call(axisLeft(scale.y).tickSize(-chart.width).tickFormat(() => ""))
     }
 
     const getXTickValues = (xLabels: string[]) => {
@@ -76,10 +73,18 @@ export default defineComponent({
     }
 
     watchEffect(() => {
-      createChart(props.xLabels as string[])
+      if (props.xLabels && props.maxYValue) {
+        scaleRef.value = {
+          x: scalePoint().domain(props.xLabels as string[]).align(0).range([0, chart.width]),
+          y: scaleLinear().domain([0, props.maxYValue + (props.maxYValue * 5 / 100)]).range([chart.height, 0])
+        }
+        const tickValues = getXTickValues(props.xLabels as string[]);
+        createChart(scaleRef.value, tickValues)
+      }
     })
 
     return {
+      scaleRef,
       sizeRef,
       marginRef
     }
@@ -94,7 +99,7 @@ export default defineComponent({
         <g class="area__scale"></g>
         <g class="area__grid"></g>
         <g class="area__graph">
-          <slot name="graph"></slot>
+          <slot name="graph" :scale="scaleRef"></slot>
         </g>
       </g>
     </svg>

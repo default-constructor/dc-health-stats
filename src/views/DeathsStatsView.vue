@@ -27,7 +27,6 @@ export default defineComponent({
     ]
 
     const pcrPlusDeathsCheckboxRef = ref()
-    const pcrPlus = {name: "PCR+", color: "#000000"}
 
     const maxYValueRef = ref(0)
     const xLabelsRef = ref([] as string[])
@@ -114,16 +113,16 @@ export default defineComponent({
     }
 
     watchEffect(() => {
-      if (groupedAgeGroupsCheckboxesRef.value) {
+      if (groupedAgeGroupsCheckboxesRef.value && pcrPlusDeathsCheckboxRef.value) {
         loadTotalDeathsData()
-      }
 
-      if (pcrPlusDeathsCheckboxRef.value) {
-        loadPcrPlusDeathsData()
+        if (pcrPlusDeathsCheckboxRef.value.checked) {
+          loadPcrPlusDeathsData()
+        }
       }
     })
 
-    pcrPlusDeathsCheckboxRef.value = {id: pcrPlus.name, name: pcrPlus.name + " anzeigen", checked: true}
+    pcrPlusDeathsCheckboxRef.value = {id: "pcr-plus", name: "PCR+ anzeigen", checked: true}
 
     groupedAgeGroupsCheckboxesRef.value = groupedAgeGroups.map((value: any[]) =>
         value.map((item: any) => {
@@ -161,17 +160,16 @@ export default defineComponent({
   <article id="deaths-stats-view">
     <div class="death-stats">
       <Chart id="deaths-stats-chart" :xLabels="xLabelsRef" :maxYValue="maxYValueRef">
-        <template v-slot:graph>
+        <template v-slot:graph="slotProps">
           <StackedAreaGraph
-              :xLabels="xLabelsRef"
-              :maxYValue="maxYValueRef"
+              :scale="slotProps.scale"
               :chartData="totalDeathsChartDataRef"
               :colors="ageGroupColorsRef"
           >
           </StackedAreaGraph>
           <AreaGraph
-              :xLabels="xLabelsRef"
-              :maxYValue="maxYValueRef"
+              v-if="pcrPlusDeathsCheckboxRef.checked"
+              :scale="slotProps.scale"
               :chartData="pcrPlusDeathsChartDataRef"
           >
           </AreaGraph>

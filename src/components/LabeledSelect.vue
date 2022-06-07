@@ -3,7 +3,7 @@
 defineProps({
   id: String,
   label: String,
-  modelValue: Number || String,
+  modelValue: [Number, String],
   options: Array
 })
 
