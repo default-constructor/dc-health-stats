@@ -21,14 +21,13 @@ export default defineComponent({
 
     const groupedAgeGroupsCheckboxesRef = ref()
     const groupedAgeGroups = [
-      [{name: "0-30", color: "#00d9ff"}, {name: "30-35", color: "#ff4d4d"}, {name: "35-40", color: "#8cff3f"}],
-      [{name: "40-45", color: "#8565e1"}, {name: "45-50", color: "#ffe258"}, {name: "50-55", color: "#007fff"}],
-      [{name: "55-60", color: "#e01a1a"}, {name: "60-65", color: "#199f19"}, {name: "65-70", color: "#7f3fff"}],
-      [{name: "70-75", color: "#e0b700"}, {name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#ad0404"}],
-      [{name: "85-90", color: "#007300"}, {name: "90-95", color: "#572ea8"}, {name: "95 u. mehr", color: "#b99a00"}]
+      [{name: "0-30", color: "#00d9ff"}, {name: "30-35", color: "#ff4d4d"}, {name: "35-40", color: "#8cff3f"}, {name: "40-45", color: "#8565e1"}, {name: "45-50", color: "#ffe258"}],
+      [{name: "50-55", color: "#007fff"}, {name: "55-60", color: "#e01a1a"}, {name: "60-65", color: "#199f19"}, {name: "65-70", color: "#7f3fff"}, {name: "70-75", color: "#e0b700"}],
+      [{name: "75-80", color: "#0020ff"}, {name: "80-85", color: "#ad0404"}, {name: "85-90", color: "#007300"}, {name: "90-95", color: "#572ea8"}, {name: "95 u. mehr", color: "#b99a00"}]
     ]
 
-    const pcrPlusDeathsCheckboxCheckedRef = ref(false)
+    const pcrPlusDeathsCheckboxRef = ref()
+    const pcrPlus = {name: "PCR+", color: "#000000"}
 
     const maxYValueRef = ref(0)
     const xLabelsRef = ref([] as string[])
@@ -36,7 +35,7 @@ export default defineComponent({
 
     const minYear = 2005;
     const currentYear = (new Date()).getFullYear();
-    const fromYearRef = ref(currentYear - 5)
+    const fromYearRef = ref((currentYear - 5))
     const toYearRef = ref(currentYear)
     const yearsRef = ref(Array.from(Array(currentYear - minYear + 1), (_, i) => minYear + i))
 
@@ -118,7 +117,13 @@ export default defineComponent({
       if (groupedAgeGroupsCheckboxesRef.value) {
         loadTotalDeathsData()
       }
+
+      if (pcrPlusDeathsCheckboxRef.value) {
+        loadPcrPlusDeathsData()
+      }
     })
+
+    pcrPlusDeathsCheckboxRef.value = {id: pcrPlus.name, name: pcrPlus.name + " anzeigen", checked: true}
 
     groupedAgeGroupsCheckboxesRef.value = groupedAgeGroups.map((value: any[]) =>
         value.map((item: any) => {
@@ -130,13 +135,11 @@ export default defineComponent({
 
           return {
             id: "age-group-" + name.substring(0, endIndex),
-            name: name as String,
+            name: name as string,
             checked: true
           } as any
         })
     )
-
-    loadPcrPlusDeathsData()
 
     return {
       totalDeathsChartDataRef,
@@ -145,7 +148,7 @@ export default defineComponent({
       toYearRef,
       yearsRef,
       groupedAgeGroupsCheckboxesRef,
-      pcrPlusDeathsCheckboxCheckedRef,
+      pcrPlusDeathsCheckboxRef,
       maxYValueRef,
       xLabelsRef,
       ageGroupColorsRef
@@ -158,7 +161,7 @@ export default defineComponent({
   <article id="deaths-stats-view">
     <div class="death-stats">
       <Chart id="deaths-stats-chart" :xLabels="xLabelsRef" :maxYValue="maxYValueRef">
-        <template v-slot:graph="graph">
+        <template v-slot:graph>
           <StackedAreaGraph
               :xLabels="xLabelsRef"
               :maxYValue="maxYValueRef"
@@ -184,14 +187,6 @@ export default defineComponent({
                 <LabeledSelect id="to-year" label="Bis Ende " v-model="toYearRef" :options="yearsRef">
                 </LabeledSelect>
               </li>
-              <li>
-                <LabeledCheckbox
-                    id="pcr-plus-deaths"
-                    label="PCR+ anzeigen"
-                    v-model="pcrPlusDeathsCheckboxCheckedRef"
-                >
-                </LabeledCheckbox>
-              </li>
             </ul>
             <ul v-for="group in groupedAgeGroupsCheckboxesRef" class="legend__age-groups">
               <li v-for="checkbox in group">
@@ -199,6 +194,16 @@ export default defineComponent({
                     :id="checkbox.id"
                     :label="checkbox.name + ' Jährige'"
                     v-model="checkbox.checked"
+                >
+                </LabeledCheckbox>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <LabeledCheckbox
+                    :id="pcrPlusDeathsCheckboxRef.id"
+                    :label="pcrPlusDeathsCheckboxRef.name"
+                    v-model="pcrPlusDeathsCheckboxRef.checked"
                 >
                 </LabeledCheckbox>
               </li>
@@ -309,6 +314,10 @@ export default defineComponent({
 
           &#age-group-95:checked + label::before {
             background-color: #b99a00;
+          }
+
+          &#pcr-plus:checked + label::before {
+            background-color: #000000;
           }
         }
       }

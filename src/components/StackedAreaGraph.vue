@@ -86,11 +86,11 @@ export default defineComponent({
     }
 
     watchEffect(() => {
-      const data = props.chartData as ChartData[]
-      const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
-      const zColors = [...new Set(props.colors as string[]).values()]
-
-      createGraph(data, props.xLabels as string[], props.maxYValue as number, zLabels, zColors)
+      if (props.chartData && props.xLabels && props.colors) {
+        const data = props.chartData as ChartData[]
+        const zLabels = [...new Set(data.map((d: ChartData) => d.z) as string[]).values()]
+        createGraph(data, props.xLabels as string[], props.maxYValue as number, zLabels, props.colors as string[])
+      }
     })
 
     return {}

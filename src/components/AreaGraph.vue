@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {defineProps, watchEffect} from "vue"
+import {watchEffect} from "vue"
 import {ChartData} from "../models/chart-data.model"
 import {area, scaleLinear, scalePoint, select} from "d3"
 import {Area} from "d3-shape"
@@ -32,9 +32,9 @@ const createGraph = (
 
   graphArea.append("path")
       .datum(data)
-      .style("fill", "#00000033")
+      .style("fill", "#00000066")
       .style("stroke", "#000000")
-      .style("stroke-width", "1.5")
+      .style("stroke-width", "1")
       .attr("d", createArea(xScale, yScale))
 }
 
@@ -46,7 +46,9 @@ const createArea = (xScale: any, yScale: any): Area<any> => {
 }
 
 watchEffect(() => {
-  createGraph(props.chartData as ChartData[], props.xLabels as string[], props.maxYValue as number)
+  if (props.chartData && props.xLabels && props.maxYValue) {
+    createGraph(props.chartData as ChartData[], props.xLabels as string[], props.maxYValue as number)
+  }
 })
 </script>
 

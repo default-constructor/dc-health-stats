@@ -4,7 +4,7 @@ import {PcrPlusDeaths} from "@/models/pcr-plus-deaths.model";
 
 export const usePcrPlusDeathsApi = () => {
   const api = axios.create({
-    baseURL: "http://localhost:8080/pcr-plus-deaths"
+    baseURL: "http://localhost:8080"
   })
 
   const loading = ref(false)
@@ -21,7 +21,7 @@ export const usePcrPlusDeathsApi = () => {
       params += "&to=" + to
     }
 
-    await api.get(params)
+    await api.get("/pcr-plus-deaths" + params)
         .then((r) => {
           result.value = r.data as PcrPlusDeaths[]
         })
