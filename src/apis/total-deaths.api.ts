@@ -4,7 +4,7 @@ import {TotalDeaths} from "@/models/total-deaths.model";
 
 export const useTotalDeathsApi = () => {
   const api = axios.create({
-    baseURL: "http://localhost:8080"
+    baseURL: "http://localhost:8081"
   })
 
   const loading = ref(false)

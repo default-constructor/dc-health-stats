@@ -4,7 +4,7 @@ import {PcrPlusDeaths} from "@/models/pcr-plus-deaths.model";
 
 export const usePcrPlusDeathsApi = () => {
   const api = axios.create({
-    baseURL: "http://localhost:8080"
+    baseURL: "http://localhost:8081"
   })
 
   const loading = ref(false)
@@ -16,7 +16,6 @@ export const usePcrPlusDeathsApi = () => {
     error.value = undefined
 
     let params = "?from=" + ((from && from > 2005) ? from : 2005)
-
     if (to && to >= 2005) {
       params += "&to=" + to
     }

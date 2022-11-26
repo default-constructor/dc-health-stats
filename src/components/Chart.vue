@@ -53,7 +53,7 @@ export default defineComponent({
           .append("g")
           .attr("class", "grid grid--x")
           .attr("transform", "translate(0," + chart.height + ")")
-          .call(axisBottom(scale.x).tickSize(-chart.height).tickFormat(() => ""))
+          .call(axisBottom(scale.x).tickSize(-chart.height).tickValues(tickValues).tickFormat(() => ""))
 
       gridArea
           .append("g")
@@ -66,10 +66,9 @@ export default defineComponent({
         return xLabels
       }
 
-      const offset = Math.trunc(xLabels.length / 53)
-      return xLabels.filter((label: string) =>
-          parseInt(label.substring(0, label.indexOf("/"))) % offset == 0
-      )
+      const offset = Math.trunc(xLabels.length / 50)
+
+      return xLabels.filter((label: string) => parseInt(label.substring(0, label.indexOf("/"))) % offset == 0)
     }
 
     watchEffect(() => {

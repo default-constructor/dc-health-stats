@@ -22,7 +22,7 @@ const createGraph = (scale: any, data: ChartData[]) => {
       .style("fill", "#00000066")
       .style("stroke", "#000000")
       .style("stroke-width", "1")
-      .attr("d", createArea(props.scale))
+      .attr("d", createArea(scale))
 }
 
 const createArea = (scale: any): Area<any> => {
