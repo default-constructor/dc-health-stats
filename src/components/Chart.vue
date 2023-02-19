@@ -1,15 +1,20 @@
 <script lang="ts">
 import {defineComponent, ref, watchEffect} from "vue"
-import {axisBottom, axisLeft, scaleLinear, scalePoint, select} from "d3"
+import {axisBottom, axisLeft, scaleBand, scaleLinear, scalePoint, select} from "d3"
 
 export default defineComponent({
   name: "Chart",
   props: {
+    type: String,
     xLabels: {
       type: Array,
       required: true
     },
-    maxYValue: {
+    maxPositiveYValue: {
+      type: Number,
+      required: true
+    },
+    maxNegativeYValue: {
       type: Number,
       required: true
     }
@@ -68,14 +73,22 @@ export default defineComponent({
 
       const offset = Math.trunc(xLabels.length / 50)
 
-      return xLabels.filter((label: string) => parseInt(label.substring(0, label.indexOf("/"))) % offset == 0)
+      return xLabels.filter((label: string) => {
+        let week = parseInt(label.substring(0, label.indexOf("/")));
+        return week === 1 || week % offset === 0
+      })
     }
 
     watchEffect(() => {
-      if (props.xLabels && props.maxYValue) {
+      if (props.xLabels && props.maxPositiveYValue) {
         scaleRef.value = {
-          x: scalePoint().domain(props.xLabels as string[]).align(0).range([0, chart.width]),
-          y: scaleLinear().domain([0, props.maxYValue + (props.maxYValue * 5 / 100)]).range([chart.height, 0])
+          x: props.type === "band" ?
+              scaleBand().domain(props.xLabels as string[]).range([0, chart.width]) :
+              scalePoint().domain(props.xLabels as string[]).align(0).range([0, chart.width]),
+          y: scaleLinear().domain([
+            props.maxNegativeYValue + (props.maxNegativeYValue * 5 / 100),
+            props.maxPositiveYValue + (props.maxPositiveYValue * 5 / 100)
+          ]).range([chart.height, 0])
         }
         const tickValues = getXTickValues(props.xLabels as string[]);
         createChart(scaleRef.value, tickValues)

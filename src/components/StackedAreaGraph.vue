@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent, watchEffect} from "vue"
-import {ChartData} from "../models/chart-data.model"
+import {ChartData} from "@/models/chart-data.model"
 import {area, group, scaleOrdinal, schemeCategory10, select, stack, sum} from "d3"
 import {Area} from "d3-shape"
 
@@ -27,9 +27,9 @@ export default defineComponent({
       const graph = select(".stacked-area-graph")
       graph.selectChild().remove()
 
-      const graphArea = graph.append("g").attr("class", "stacked-area-graph__area")
+      const stackedAreaGraph = graph.append("g").attr("class", "stacked-area-graph__area")
 
-      graphArea.selectAll("layers")
+      stackedAreaGraph.selectAll("layers")
           .data(createStack(data))
           .enter()
           .append("path")

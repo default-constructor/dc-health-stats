@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {watchEffect} from "vue"
-import {ChartData} from "../models/chart-data.model"
+import {ChartData} from "@/models/chart-data.model"
 import {select} from "d3"
 
 const props = defineProps({
@@ -16,7 +16,7 @@ const createGraph = (scale: any, data: ChartData[]) => {
 
   data.forEach((datum: ChartData) => {
     lineArea.append("line")
-        .style("stroke", "#000000")
+        .style("stroke", "#a2a2a2")
         .style("stroke-width", "1")
         .attr("x1", scale.x(datum.x))
         .attr("x2", scale.x(datum.x))

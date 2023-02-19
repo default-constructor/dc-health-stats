@@ -1,5 +1,6 @@
 import {createRouter, createWebHistory} from "vue-router";
 import DeathsStatsView from "./views/DeathsStatsView.vue";
+import Icd10StatsView from "./views/Icd10StatsView.vue";
 import Home from "./views/Home.vue";
 
 const routes = [
@@ -12,6 +13,11 @@ const routes = [
     name: 'deaths-stats',
     path: '/deaths-stats',
     component: DeathsStatsView
+  },
+  {
+    name: 'icd-10-stats',
+    path: '/icd-10-stats',
+    component: Icd10StatsView
   },
 ];
 

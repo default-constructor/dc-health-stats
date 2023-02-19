@@ -21,6 +21,10 @@ const updateModelValue = (event: any) => {
 
 <style lang="scss">
 .labeled-checkbox {
+  width: 100%;
 
+  > label {
+    margin-left: 8px;
+  }
 }
 </style>

@@ -25,6 +25,15 @@ const updateModelValue = (event: any) => {
 
 <style lang="scss">
 .labeled-select {
+  display: flex;
+  width: 100%;
 
+  > label {
+    flex: 1;
+  }
+
+  > select {
+    flex: 0;
+  }
 }
 </style>

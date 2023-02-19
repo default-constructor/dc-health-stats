@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import {watchEffect} from "vue"
+import {Line, line, select} from "d3"
 import {ChartData} from "@/models/chart-data.model"
-import {area, select} from "d3"
-import {Area} from "d3-shape"
 
 const props = defineProps({
   scale: Object,
@@ -11,24 +10,23 @@ const props = defineProps({
 })
 
 const createGraph = (scale: any, data: ChartData[]) => {
-  const graph = select(".area-graph")
+  const graph = select(".line-graph")
   graph.selectChild().remove()
 
-  const areaGraph = graph.append("g").attr("class", "area-graph__area")
+  const lineGraph = graph.append("g").attr("class", "line-graph__line")
 
-  areaGraph.append("path")
+  lineGraph.append("path")
       .datum(data)
-      .style("stroke-width", "1")
-      .style("stroke", "#000000")
-      .style("fill", "#00000066")
-      .attr("d", createArea(scale))
+      .style("fill", "#00000000")
+      .style("stroke-width", "2")
+      .style("stroke", "#FF0000")
+      .attr("d", createLine(scale))
 }
 
-const createArea = (scale: any): Area<any> => {
-  return area()
+const createLine = (scale: any): Line<any> => {
+  return line()
       .x((d: any) => scale.x(d.x))
-      .y0(scale.y(0))
-      .y1((d: any) => scale.y(d.y))
+      .y((d: any) => scale.y(d.y))
 }
 
 watchEffect(() => {
@@ -39,7 +37,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <g class="area-graph"></g>
+  <g class="line-graph"></g>
 </template>
 
 <style lang="scss">
