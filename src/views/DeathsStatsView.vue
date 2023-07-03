@@ -15,8 +15,6 @@ import LineGraph from "@/components/LineGraph.vue"
 import {useExcessMortalityApi} from "@/apis/excess-mortality.api";
 import {ExcessMortality} from "@/models/excess-mortality.model";
 
-console.log("DeathsStatsView");
-
 const totalDeathsRef = ref()
 const totalDeathsChartDataRef = ref([] as ChartData[])
 const pcrPlusDeathsChartDataRef = ref([] as ChartData[])
@@ -66,16 +64,13 @@ const {loadTotalDeaths, totalDeathsResult} = useTotalDeathsApi()
 const {loadPcrPlusDeaths, pcrPlusDeathsResult} = usePcrPlusDeathsApi()
 const {loadExcessMortalities, excessMortalitiesResult} = useExcessMortalityApi()
 
-const getYearLinesData = (data: TotalDeaths[], maxYValue: number): ChartData[] => {
+const getYearLinesData = (data: TotalDeaths[]): ChartData[] => {
   return data
       .filter((deaths: TotalDeaths) => deaths.week === 1)
       .map((deaths: TotalDeaths) => ("0" + deaths.week).slice(-2) + "/" + deaths.year)
       .filter((label: string, index: number, self: string[]) => self.indexOf(label) === index)
       .map((label: string) => {
-        return {
-          x: label,
-          y: maxYValue + 1500
-        } as ChartData
+        return {x: label} as ChartData
       });
 }
 
@@ -111,7 +106,7 @@ const loadTotalDeathsData = () => {
         ageGroupColorsRef.value = getAgeGroupColors(totalDeathsResult.value)
         xLabelsRef.value = [...new Set(totalDeathsChartDataRef.value.map((d: ChartData) => d.x) as string[]).values()]
         maxPositiveYValueRef.value = Math.max(...Array.from(getGroupedData(totalDeathsChartDataRef.value).values()) as number[])
-        yearLinesDataRef.value = getYearLinesData(totalDeathsResult.value, maxPositiveYValueRef.value)
+        yearLinesDataRef.value = getYearLinesData(totalDeathsResult.value)
       })
 }
 
@@ -189,19 +184,26 @@ const setNoPcrPlusDeathsData = () => {
   }
 }
 
+const setYearLinesData = () => {
+  // yearLinesDataRef.value = getYearLinesData(totalDeathsRef.value, maxPositiveYValueRef.value)
+}
+
 watch(ageGroupsCheckboxRef, (ageGroupsCheckbox) => {
   console.log("DeathsStatsView", "watch", "ageGroupsCheckbox", "checked", ageGroupsCheckbox.checked)
   loadTotalDeathsData()
+  setYearLinesData()
 })
 
 watch(pcrPlusDeathsCheckboxRef, (pcrPlusDeathsCheckbox) => {
   console.log("DeathsStatsView", "watch", "pcrPlusDeathsCheckboxRef", "checked", pcrPlusDeathsCheckbox.checked)
   loadPcrPlusDeathsData()
+  setYearLinesData()
 })
 
 watch(excessMortalityCheckboxRef, (excessMortalityCheckbox) => {
   console.log("DeathsStatsView", "watch", "excessMortalityCheckboxRef", "checked", excessMortalityCheckbox.checked)
   loadExcessMortalityData()
+  setYearLinesData()
 })
 
 watchEffect(() => {
@@ -209,11 +211,13 @@ watchEffect(() => {
     loadTotalDeathsData()
     loadPcrPlusDeathsData()
     loadExcessMortalityData()
+    setYearLinesData()
   }
 })
 
 pcrPlusDeathsCheckboxRef.checked = true
 ageGroupsCheckboxRef.checked = true
+excessMortalityCheckboxRef.checked = true
 </script>
 
 <template>
@@ -221,6 +225,20 @@ ageGroupsCheckboxRef.checked = true
     <div class="death-stats">
       <Chart id="deaths-stats-chart" :xLabels="xLabelsRef" :maxPositiveYValue="maxPositiveYValueRef" :maxNegativeYValue="maxNegativeYValueRef">
         <template v-slot:graph="slotProps">
+          <VerticalLine :scale="slotProps.scale" :data="yearLinesDataRef" :maxYPosition="maxPositiveYValueRef"
+                        :minYPosition="maxNegativeYValueRef" color="#a2a2a2" className="year-line"></VerticalLine>
+          <VerticalLine :scale="slotProps.scale" :data="[{x: '52/2020'}]" :maxYPosition="maxPositiveYValueRef"
+                        :minYPosition="maxNegativeYValueRef" color="#ff0000" className="vax-start-highest-prio">
+          </VerticalLine>
+          <VerticalLine :scale="slotProps.scale" :data="[{x: '12/2021'}]" :maxYPosition="maxPositiveYValueRef"
+                        :minYPosition="maxNegativeYValueRef" color="#ff0000" className="vax-start-higher-prio">
+          </VerticalLine>
+          <VerticalLine :scale="slotProps.scale" :data="[{x: '17/2021'}]" :maxYPosition="maxPositiveYValueRef"
+                        :minYPosition="maxNegativeYValueRef" color="#ff0000" className="vax-start-increased-prio">
+          </VerticalLine>
+          <VerticalLine :scale="slotProps.scale" :data="[{x: '22/2021'}]" :maxYPosition="maxPositiveYValueRef"
+                        :minYPosition="maxNegativeYValueRef" color="#ff0000" className="vax-start-others">
+          </VerticalLine>
           <StackedAreaGraph
               v-if="ageGroupsCheckboxRef.checked"
               :scale="slotProps.scale"
@@ -240,7 +258,6 @@ ageGroupsCheckboxRef.checked = true
               :chartData="excessMortalityChartDataRef"
           >
           </LineGraph>
-          <VerticalLine :scale="slotProps.scale" :data="yearLinesDataRef"></VerticalLine>
         </template>
         <template v-slot:legend>
           <div class="death-stats__legend">
@@ -293,7 +310,8 @@ ageGroupsCheckboxRef.checked = true
         <template v-slot:info>
           <div class="death-stats__reference">
             <strong>Quellen:</strong><br>
-            <span>Statistisches Bundesamt (<a href="https://www.destatis.de" target="_blank">www.destatis.de</a>)</span>
+            <span>Statistisches Bundesamt (<a href="https://www.destatis.de" target="_blank">www.destatis.de</a>)</span><br>
+            <span>Robert Koch-Institut (<a href="https://www.rki.de/" target="_blank">www.rki.de</a>)</span>
           </div>
         </template>
       </Chart>

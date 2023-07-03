@@ -19,7 +19,7 @@ const createGraph = (scale: any, data: ChartData[]) => {
       .datum(data)
       .style("fill", "#00000000")
       .style("stroke-width", "2")
-      .style("stroke", "#FF0000")
+      .style("stroke", "#be1380")
       .attr("d", createLine(scale))
 }
 

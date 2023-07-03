@@ -21,7 +21,7 @@ export default defineComponent({
   },
 
   setup(props) {
-    const sizeRef = ref({width: 1280, height: 512})
+    const sizeRef = ref({width: 1540, height: 512})
     const marginRef = ref({left: 64, top: 16, right: 64, bottom: 64})
     const chart = {
       width: sizeRef.value.width - marginRef.value.left - marginRef.value.right,
